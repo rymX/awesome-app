@@ -1,22 +1,107 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect ,useRef } from "react";
 import axios from "axios";
-import { Breadcrumb, Layout, Menu, Card, Col, Row, List } from "antd";
-import ReactPaginate from 'react-paginate';
+import { Breadcrumb, Layout, Button, Card, Col, Row, List ,Form, Input} from "antd";
+import ReactPaginate from "react-paginate";
 import "./App.css";
 
 const { Header, Content, Footer } = Layout;
+const { Search } = Input;
 
 const App = () => {
+
+  const searchElm = useRef("")
+
+  const [searchTerm , setSearchTerm] = useState("")
+  const [searchResult , setSearchresult] = useState([])
   const [apis, setApis] = useState([]);
+
+  const [currentItems, setCurrentItems] = useState(null);
+  const [pageCount, setPageCount] = useState(0);
+
+  const [itemOffset, setItemOffset] = useState(0);
+  // search thing here
 
   const fetchApis = async () => {
     const apis = await axios("https://api.publicapis.org/entries");
-    setApis(apis);
+    setApis(apis.data.entries);
+
+    const endOffset = itemOffset + 20;
+
+    setCurrentItems(apis.data.entries.slice(itemOffset, endOffset));
+
+    setPageCount(Math.ceil(apis.data.entries.length / 20));
   };
 
   useEffect(() => {
     fetchApis();
-  }, []);
+  }, [itemOffset , apis , searchTerm]);
+
+ 
+  const onFinish =  (values) => {
+
+  //   var newapi =  apis.filter( function(api) {
+  //     return (api.API).toLowerCase() === (values.search.toLowerCase());
+  //   }) ;
+  //   setApis(newapi)
+  //  console.log(apis)
+  };
+ 
+  function Items({ currentItems }) {
+    return (
+      <>
+        {currentItems &&
+          currentItems.filter((api)=>{
+            if (searchTerm == "") {return api}
+            else if (api.API.toLowerCase().includes(searchTerm.toLowerCase())) {return api}
+            
+          }).map((item , key) => (
+            <div>
+               <Card
+                    size="small"
+                    extra={<a href={item.Link}>More</a>}
+                    title={item.API}
+                    bordered={false}
+                    style={{
+                      width: 250,
+                      margin: 15,
+                    }}
+                  >
+                    <h2>{item.API}</h2>
+                    <p>Category : {item.Category}</p>
+                    <p style={{
+
+            textOverflow: "ellipsis",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+           
+          }}
+                    >{item.Description}</p>
+                  </Card>
+            </div>
+          ))}
+      </>
+    );
+  }
+  const handlePageClick = (event) => {
+    const newOffset = (event.selected * 20) % apis.length;
+    setItemOffset(newOffset);
+  };
+  const onhandleChange =()=>{
+    const serachTerm = searchElm.current.getFieldValue().search
+    setSearchTerm(serachTerm);
+    // if (serachTerm !== ""){
+    // const  newApiList = apis.filter((api)=>{
+    //     return  (api.API).toLowerCase().includes(serachTerm.toLowerCase());
+    //   })
+    //   setSearchresult(newApiList)
+
+  //   }
+  //   else 
+  //  { setSearchresult(apis)}
+
+  //  if (serachTerm.length > 0){ setApis(searchResult)}
+    
+  }
 
   return (
     <div className="App">
@@ -26,18 +111,31 @@ const App = () => {
             position: "fixed",
             zIndex: 1,
             width: "100%",
+            theme:"dark",
+             mode:"horizontal"
           }}
         >
-          <div className="logo" />
-          <Menu
-            theme="dark"
-            mode="horizontal"
-            defaultSelectedKeys={["2"]}
-            items={new Array(3).fill(null).map((_, index) => ({
-              key: String(index + 1),
-              label: `nav ${index + 1}`,
-            }))}
-          />
+         <Form
+         ref = {searchElm}
+      name="basic"
+      labelCol={{
+        span: 8,
+      }}
+      wrapperCol={{
+        span: 16,
+      }}
+    
+      onFinish={onFinish}
+      onChange={onhandleChange}
+    >
+      <Form.Item
+        
+        name="search"
+        
+      >
+        <Input />
+      </Form.Item>
+    </Form>
         </Header>
         <Content
           className="site-layout "
@@ -55,46 +153,42 @@ const App = () => {
             <Breadcrumb.Item>List</Breadcrumb.Item>
             <Breadcrumb.Item>App</Breadcrumb.Item>
           </Breadcrumb> */}
-          {apis.data ? (
-            <div
-              className="site-layout-background site-card-border-less-wrapper"
-              style={{
-                padding: 24,
-                minHeight: 380,
-              }}
-            >
-              <Row
-                grid={{
-                  gutter: 16,
-                  xs: 1,
-                  sm: 2,
-                  md: 4,
-                  lg: 4,
-                  xl: 6,
-                  xxl: 3,
+          {apis.length ? (
+            <>
+              <div
+                className="site-layout-background site-card-border-less-wrapper"
+                style={{
+                  padding: 24,
+                  minHeight: 380,
                 }}
               >
-                {apis.data.entries.map((api) => {
-                  return (
-                    <Card
-                      size="small"
-                      extra={<a href="#">More</a>}
-                      title={api["API"]}
-                      bordered={false}
-                      style={{
-                        width: 250,
-                        margin: 15,
-                      }}
-                    >
-                      <p>Card content</p>
-                      <p>Card content</p>
-                      <p>Card content</p>
-                    </Card>
-                  );
-                })}
-              </Row>
-            </div>
+                <Row
+                  grid={{
+                    gutter: 16,
+                    xs: 1,
+                    sm: 2,
+                    md: 4,
+                    lg: 4,
+                    xl: 6,
+                    xxl: 3,
+                  }}
+                >
+                  <Items currentItems={currentItems} />
+                  <ReactPaginate
+                  breakLabel="..."
+                  nextLabel="next >"
+                  onPageChange={handlePageClick}
+                  pageRangeDisplayed={5}
+                  pageCount={pageCount}
+                  previousLabel="< previous"
+                  renderOnZeroPageCount={null}
+                />
+                </Row>
+                
+              </div>
+            </>
           ) : (
+          
             <div
               className="site-layout-background site-card-border-less-wrapper"
               style={{
@@ -137,11 +231,6 @@ const App = () => {
             textAlign: "center",
           }}
         >
-          {apis.data ? (
-            <h1>{apis.data.entries[0]["API"]}</h1>
-          ) : (
-            <h1>spinner</h1>
-          )}
           Ant Design ©2018 Created by Ant UED
         </Footer>
       </Layout>
