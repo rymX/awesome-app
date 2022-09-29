@@ -1,17 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import {
-  Breadcrumb,
-  Layout,
-  Button,
-  Card,
-  Col,
-  Row,
-  List,
-  Form,
-  Input,
-  Select,
-} from "antd";
+import { Breadcrumb, Layout, Button, Card, Row, Input, Select } from "antd";
 import ReactPaginate from "react-paginate";
 import "./App.css";
 
@@ -24,7 +13,7 @@ const App = () => {
   const wrapperRef = useRef(null);
   const isInitialMount = useRef(true);
 
-  const [searchArray , setSearchArray] = useState({})
+  const [searchArray, setSearchArray] = useState({});
   const [apis, setApis] = useState({});
 
   const [currentItems, setCurrentItems] = useState(null);
@@ -32,6 +21,7 @@ const App = () => {
 
   const [selectedCategory, setSelectedCategory] = useState();
   const [allCategories, setAllCategories] = useState([]);
+  const [searchByCategory, setSearchByCategory] = useState([]);
 
   const [itemOffset, setItemOffset] = useState(0);
 
@@ -39,192 +29,155 @@ const App = () => {
     return (
       <>
         {currentItems &&
-          currentItems.map((item , key) => (
+          currentItems.map((item, key) => (
             <div>
-               <Card
-                    size="small"
-                    extra={<a href={item.Link}>More</a>}
-                    title={item.API}
-                    bordered={false}
-                    hoverable={true}
-                    style={{
-                      width: 250,
-                      margin: 15,
-                    }}
-                  >
-                    <h2>{item.API}</h2>
-                    <p>Category : {item.Category}</p>
-                    <p style={{
-
-            textOverflow: "ellipsis",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-
-          }}
-                    >{item.Description}</p>
-                  </Card>
+              <Card
+                size="small"
+                extra={<a href={item.Link}>More</a>}
+                title={item.API}
+                bordered={false}
+                hoverable={true}
+                style={{
+                  width: 250,
+                  margin: 15,
+                }}
+              >
+                <h2
+                  style={{
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {item.API}
+                </h2>
+                <p>Category : {item.Category}</p>
+                <p
+                  style={{
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {item.Description}
+                </p>
+              </Card>
             </div>
           ))}
       </>
     );
   }
-  // function ItemsOfCategory({ items }) {
-  //   return (
-  //     <>
-  //     {/* <h1>hi</h1> */}
-  //       {items.map((item, key) => (
-         
-  //         //  onChange={handleChangeCategory}
-  //         >
-  //           <Option value="all">test</Option>
-  //         </Select>
-  //       ))}
-  //     </>
-  //   );
-  // }
-  // function Items({ currentItems }) {
-  //   return (
-  //     <>
-  //       {currentItems &&
-  //         currentItems
-  //           .filter((api) => {
-  //             if (searchTerm == "") {
-  //               return api;
-  //             } else if (
-  //               api.API.toLowerCase().includes(searchTerm.toLowerCase())
-  //             ) {
-  //               return api;
-  //             }
-  //           })
-  //           .map((item, key) => (
-  //             <div>
-  //               <Card
-  //                 size="small"
-  //                 hoverable={true}
-  //                 extra={<a href={item.Link}>More</a>}
-  //                 title={item.API}
-  //                 bordered={false}
-  //                 style={{
-  //                   width: 250,
-  //                   margin: 15,
-  //                 }}
-  //               >
-  //                 <h2>{item.API}</h2>
-  //                 <p>Category : {item.Category}</p>
-  //                 <p
-  //                   style={{
-  //                     textOverflow: "ellipsis",
-  //                     overflow: "hidden",
-  //                     whiteSpace: "nowrap",
-  //                   }}
-  //                 >
-  //                   {item.Description}
-  //                 </p>
-  //               </Card>
-  //             </div>
-  //           ))}
-  //     </>
-  //   );
-  // }
 
   const handlePageClick = (event) => {
+    if (searchArray.length) {
+      const newOffset = (event.selected * 20) % searchArray.length;
+      setItemOffset(newOffset);
 
-    const newOffset = (event.selected * 20) % apis.length;
-    setItemOffset(newOffset);
+      const endOffset = newOffset + 20;
+      setCurrentItems(searchArray.slice(newOffset, endOffset));
+
+      setPageCount(Math.ceil(searchArray.length / 20));
+    } else {
+      const newOffset = (event.selected * 20) % apis.length;
+      setItemOffset(newOffset);
+
+      const endOffset = newOffset + 20;
+      setCurrentItems(apis.slice(newOffset, endOffset));
+
+      setPageCount(Math.ceil(apis.length / 20));
+    }
+
     wrapperRef.current.scrollIntoView();
-
-
-   const endOffset = newOffset + 20;
-    setCurrentItems(apis.slice(newOffset, endOffset));
-
-    setPageCount(Math.ceil(apis.length / 20));
-
-
   };
 
   const onhandleSearch = () => {
-
     const searchTerm = searchElm.current.input.value;
-    
-    if (searchTerm !== ""){
-
-    const  newApiList = apis.filter((api)=>{
-        return  (api.API).toLowerCase().includes(searchTerm.toLowerCase());
-      })
-      console.log(newApiList);
-     setSearchArray(newApiList)
+    if (searchTerm !== "") {
+      const newApiList = apis.filter((api) => {
+        return api.API.toLowerCase().includes(searchTerm.toLowerCase());
+      });
+      setSearchArray(newApiList);
+      // if(searchArray.length) {
+      //   const  newApiList = searchArray.filter((api)=>{
+      //     return  (api.API).toLowerCase().includes(searchTerm.toLowerCase());
+      //   })
+      //   // console.log(newApiList);
+      //  setSearchArray(newApiList)
+      // }
+      // else {
+      //   const  newApiList = apis.filter((api)=>{
+      //     return  (api.API).toLowerCase().includes(searchTerm.toLowerCase());
+      //   })
+      //   // console.log(newApiList);
+      //  setSearchArray(newApiList)
+      // }
+    } else if (searchTerm == "") {
+      setSearchArray(apis);
     }
-    else if (searchTerm =='') {setSearchArray(apis)}
-    
-    
   };
 
-  const handleChangeCategory = () => {};
+  const handleSelectCategory = (value) => {
+    // empty search input
+    if (value == "allCategories") {
+      setSearchArray(apis);
+      setSearchByCategory(apis);
+    } else {
+      const newApiList = apis.filter((api) => {
+        return api.Category.toLowerCase() === value.toLowerCase();
+      });
+
+      setSearchArray(newApiList);
+      setSearchByCategory(newApiList);
+    }
+  };
 
   useEffect(() => {
-
     const fetchApis = async () => {
       const data = await axios("https://api.publicapis.org/entries");
       setApis(data.data.entries);
-      const itemOffset =0
+      // setSearchArray(data.data.entries)
+
+      const itemOffset = 0;
       const endOffset = itemOffset + 20;
-      if(searchArray.length){
+
+      if (searchArray.length) {
         setCurrentItems(searchArray.slice(itemOffset, endOffset));
-  
+
         setPageCount(Math.ceil(searchArray.length / 20));
-      }
-      else{
+      } else {
         setCurrentItems(data.data.entries.slice(itemOffset, endOffset));
-  
+
         setPageCount(Math.ceil(data.data.entries.length / 20));
-
       }
-    
     };
-
-    fetchApis();
-
 
     const fetchCategory = async () => {
       const categories = await axios("https://api.publicapis.org/categories");
       setAllCategories(categories.data.categories);
       console.log(categories.data.categories);
-      console.log(typeof(categories.data.categories));
-
+      console.log(typeof categories.data.categories);
     };
 
+    fetchApis();
     fetchCategory();
-
-   
-  },[]);
-  // useEffect(() => { 
+  }, []);
+  // useEffect(() => {
   //   if (searchArray ) console.log("test ")
   //   setApis(searchArray)
   //   console.log("new api list " + searchArray)
   //  }, [searchTerm])
 
-   useEffect(() => {
+  useEffect(() => {
     if (isInitialMount.current) {
-       isInitialMount.current = false;
+      isInitialMount.current = false;
     } else if (searchArray.length) {
-     //  setApis(searchArray)
-        console.log("this runs only on update ");
-
-        const itemOffset =0
+      const itemOffset = 0;
       const endOffset = itemOffset + 20;
       setCurrentItems(searchArray.slice(itemOffset, endOffset));
-  
+
       setPageCount(Math.ceil(searchArray.length / 20));
-    } else {
-
     }
-  },[searchArray]);
-
-
-  useEffect(()=>{
-  
-    
-  },[])
+  }, [searchArray]);
 
   return (
     <div className="App" ref={wrapperRef}>
@@ -249,21 +202,24 @@ const App = () => {
               marginLeft: 40,
             }}
           />
-          <Select
+          {/* <Select
             defaultValue="All Category"
             placeholder="input Category"
+            onChange={handleSelectCategory}
             style={{
               width: 200,
               marginTop: 25,
               marginLeft: 40,
-            }} 
-            >
-              {allCategories && allCategories.map((item , key)=>(
-                <option>{item}</option>
-              ))}
-            </Select>
+            }}
+          >
+            <Option value="allCategories">All Categories</Option>
 
-        
+            {allCategories &&
+              allCategories.map((item, key) => (
+                <Option value={item}>{item}</Option>
+              ))}
+          </Select> */}
+
           {/* {allCategories ? (
             <>
              <Select
@@ -284,7 +240,6 @@ const App = () => {
             <div>
             <h1>test2</h1></div>
           ) } */}
-          
         </Header>
         <Content
           className="site-layout "
@@ -293,15 +248,19 @@ const App = () => {
             marginTop: 64,
           }}
         >
-          {/* <Breadcrumb
+          <Breadcrumb
             style={{
               margin: "16px 0",
             }}
           >
-            <Breadcrumb.Item>Home</Breadcrumb.Item>
-            <Breadcrumb.Item>List</Breadcrumb.Item>
-            <Breadcrumb.Item>App</Breadcrumb.Item>
-          </Breadcrumb> */}
+            {searchArray.length ? (
+              <Breadcrumb.Item>
+                total : {searchArray.length} apis{" "}
+              </Breadcrumb.Item>
+            ) : (
+              <Breadcrumb.Item> total : {apis.length} apis </Breadcrumb.Item>
+            )}
+          </Breadcrumb>
           {apis.length ? (
             <>
               <div
@@ -323,16 +282,35 @@ const App = () => {
                   }}
                 >
                   <Items currentItems={currentItems} />
-                  <ReactPaginate
-                    breakLabel="..."
-                    nextLabel="next >"
-                    onPageChange={handlePageClick}
-                    pageRangeDisplayed={5}
-                    pageCount={pageCount}
-                    previousLabel="< previous"
-                    renderOnZeroPageCount={null}
-                  />
-                </Row>
+                  </Row>
+                  <Row
+                  grid={{
+                    gutter: 16,
+                    xs: 1,
+                    sm: 2,
+                    md: 4,
+                    lg: 4,
+                    xl: 6,
+                    xxl: 3,
+                  }}
+                  style ={{justifyContent : 'center'}}
+                >
+                   
+                    <ReactPaginate
+                      className="pagination"
+                      breakLabel="..."
+                      nextLabel="next >"
+                      onPageChange={handlePageClick}
+                      pageRangeDisplayed={5}
+                      pageCount={pageCount}
+                      previousLabel="< previous"
+                      renderOnZeroPageCount={null}
+                      activeClassName="active"
+                    />
+                  
+                  </Row>
+                
+                
               </div>
             </>
           ) : (
@@ -354,21 +332,19 @@ const App = () => {
                   xxl: 3,
                 }}
               >
-                {[...Array(8)].map((e, i) => 
+                {[...Array(8)].map((e, i) => (
                   <Card
-                  size="small"
-                  extra={<a href="">More</a>}
-                  title=""
-                  bordered={false}
-                  style={{
-                    width: 250,
-                    margin: 15,
-                  }}
-                  loading="true"
-                >
-                </Card>
-                )}
-              
+                    size="small"
+                    extra={<a href="">More</a>}
+                    title=""
+                    bordered={false}
+                    style={{
+                      width: 250,
+                      margin: 15,
+                    }}
+                    loading="true"
+                  ></Card>
+                ))}
               </Row>
             </div>
           )}
