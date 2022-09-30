@@ -1,7 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Breadcrumb, Layout, Button, Card, Row, Input, Select } from "antd";
+import {
+  Breadcrumb,
+  Layout,
+  Form,
+  Card,
+  Row,
+  Input,
+  Select,
+  notification,
+} from "antd";
 import ReactPaginate from "react-paginate";
+import { MinusCircleOutlined } from "@ant-design/icons";
+
 import "./App.css";
 
 const { Header, Content, Footer } = Layout;
@@ -12,6 +23,7 @@ const App = () => {
   const searchElm = useRef("");
   const wrapperRef = useRef(null);
   const isInitialMount = useRef(true);
+  const formRef = useRef();
 
   const [searchArray, setSearchArray] = useState({});
   const [apis, setApis] = useState({});
@@ -77,6 +89,14 @@ const App = () => {
       setCurrentItems(searchArray.slice(newOffset, endOffset));
 
       setPageCount(Math.ceil(searchArray.length / 20));
+    } else if (searchByCategory.length) {
+      const newOffset = (event.selected * 20) % searchByCategory.length;
+      setItemOffset(newOffset);
+
+      const endOffset = newOffset + 20;
+      setCurrentItems(searchByCategory.slice(newOffset, endOffset));
+
+      setPageCount(Math.ceil(searchByCategory.length / 20));
     } else {
       const newOffset = (event.selected * 20) % apis.length;
       setItemOffset(newOffset);
@@ -93,10 +113,23 @@ const App = () => {
   const onhandleSearch = () => {
     const searchTerm = searchElm.current.input.value;
     if (searchTerm !== "") {
-      const newApiList = apis.filter((api) => {
+      const newApiList = searchByCategory.filter((api) => {
         return api.API.toLowerCase().includes(searchTerm.toLowerCase());
       });
-      setSearchArray(newApiList);
+      if (newApiList.length == 0) {
+        notification.open({
+          message: "No Search Results ",
+          description: `Sorry, but nothing matched your search terms " ${searchTerm} " please try again with some different keywords`,
+          icon: (
+            <MinusCircleOutlined
+              style={{
+                color: "#108ee9",
+              }}
+            />
+          ),
+        });
+      }
+      setSearchByCategory(newApiList);
       // if(searchArray.length) {
       //   const  newApiList = searchArray.filter((api)=>{
       //     return  (api.API).toLowerCase().includes(searchTerm.toLowerCase());
@@ -112,21 +145,26 @@ const App = () => {
       //  setSearchArray(newApiList)
       // }
     } else if (searchTerm == "") {
-      setSearchArray(apis);
+      setSearchArray([]);
     }
   };
 
   const handleSelectCategory = (value) => {
-    // empty search input
+    console.log( formRef.current.input);
+    // formRef.current.reset();
+   //  searchElm.current.input.value = "";
+    //  searchElm.current.input._valueTracker.setValue("")
+    console.log();
+    //
     if (value == "allCategories") {
-      setSearchArray(apis);
+      //   setSearchArray(apis);
       setSearchByCategory(apis);
     } else {
       const newApiList = apis.filter((api) => {
         return api.Category.toLowerCase() === value.toLowerCase();
       });
 
-      setSearchArray(newApiList);
+      //  setSearchArray(newApiList);
       setSearchByCategory(newApiList);
     }
   };
@@ -135,15 +173,19 @@ const App = () => {
     const fetchApis = async () => {
       const data = await axios("https://api.publicapis.org/entries");
       setApis(data.data.entries);
-      // setSearchArray(data.data.entries)
+      setSearchByCategory(data.data.entries);
 
       const itemOffset = 0;
       const endOffset = itemOffset + 20;
 
-      if (searchArray.length) {
-        setCurrentItems(searchArray.slice(itemOffset, endOffset));
+      //   setCurrentItems(data.data.entries.slice(itemOffset, endOffset));
 
-        setPageCount(Math.ceil(searchArray.length / 20));
+      // setPageCount(Math.ceil(data.data.entries.length / 20));
+
+      if (searchByCategory.length) {
+        setCurrentItems(searchByCategory.slice(itemOffset, endOffset));
+
+        setPageCount(Math.ceil(searchByCategory.length / 20));
       } else {
         setCurrentItems(data.data.entries.slice(itemOffset, endOffset));
 
@@ -154,8 +196,8 @@ const App = () => {
     const fetchCategory = async () => {
       const categories = await axios("https://api.publicapis.org/categories");
       setAllCategories(categories.data.categories);
-      console.log(categories.data.categories);
-      console.log(typeof categories.data.categories);
+      // console.log(categories.data.categories);
+      // console.log(typeof categories.data.categories);
     };
 
     fetchApis();
@@ -176,8 +218,14 @@ const App = () => {
       setCurrentItems(searchArray.slice(itemOffset, endOffset));
 
       setPageCount(Math.ceil(searchArray.length / 20));
+    } else if (searchByCategory.length) {
+      const itemOffset = 0;
+      const endOffset = itemOffset + 20;
+      setCurrentItems(searchByCategory.slice(itemOffset, endOffset));
+
+      setPageCount(Math.ceil(searchByCategory.length / 20));
     }
-  }, [searchArray]);
+  }, [searchByCategory, searchArray]);
 
   return (
     <div className="App" ref={wrapperRef}>
@@ -191,55 +239,39 @@ const App = () => {
             mode: "horizontal",
           }}
         >
-          <Search
-            ref={searchElm}
-            placeholder="input search text"
-            onChange={onhandleSearch}
-            name="search"
-            style={{
-              width: 200,
-              marginTop: 25,
-              marginLeft: 40,
-            }}
-          />
-          {/* <Select
-            defaultValue="All Category"
-            placeholder="input Category"
-            onChange={handleSelectCategory}
-            style={{
-              width: 200,
-              marginTop: 25,
-              marginLeft: 40,
-            }}
-          >
-            <Option value="allCategories">All Categories</Option>
+    
+    <form ref={formRef} 
+    onSubmit={handleSelectCategory}>
+              <Search
+              ref={searchElm}
+              placeholder="input search text"
+              onChange={onhandleSearch}
+              name="search"
+              style={{
+                width: 200,
+                marginTop: 25,
+                marginLeft: 40,
+              }}
+            />
+              <Select
+              defaultValue="All Category"
+              placeholder="input Category"
+              onChange={handleSelectCategory}
+              name="category"
+              style={{
+                width: 200,
+                marginTop: 25,
+                marginLeft: 40,
+              }}
+            >
+              <Option value="allCategories">All Categories</Option>
 
-            {allCategories &&
-              allCategories.map((item, key) => (
-                <Option value={item}>{item}</Option>
-              ))}
-          </Select> */}
-
-          {/* {allCategories ? (
-            <>
-             <Select
-            defaultValue="All Category"
-            placeholder="input Category"
-            style={{
-              width: 200,
-              marginTop: 25,
-              marginLeft: 40,
-            }}  
-
-          <ItemsOfCategory items={allCategories} />
-
-          </Select>
-            </>
-           
-          ) : (
-            <div>
-            <h1>test2</h1></div>
-          ) } */}
+              {allCategories &&
+                allCategories.map((item, key) => (
+                  <Option value={item}>{item}</Option>
+                ))}
+            </Select>
+            </form>
         </Header>
         <Content
           className="site-layout "
@@ -248,19 +280,19 @@ const App = () => {
             marginTop: 64,
           }}
         >
-          <Breadcrumb
+          {/* <Breadcrumb
             style={{
               margin: "16px 0",
             }}
           >
-            {searchArray.length ? (
+            {searchByCategory.length ? (
               <Breadcrumb.Item>
                 total : {searchArray.length} apis{" "}
               </Breadcrumb.Item>
             ) : (
               <Breadcrumb.Item> total : {apis.length} apis </Breadcrumb.Item>
             )}
-          </Breadcrumb>
+          </Breadcrumb> */}
           {apis.length ? (
             <>
               <div
@@ -282,8 +314,8 @@ const App = () => {
                   }}
                 >
                   <Items currentItems={currentItems} />
-                  </Row>
-                  <Row
+                </Row>
+                <Row
                   grid={{
                     gutter: 16,
                     xs: 1,
@@ -293,24 +325,20 @@ const App = () => {
                     xl: 6,
                     xxl: 3,
                   }}
-                  style ={{justifyContent : 'center'}}
+                  style={{ justifyContent: "center" }}
                 >
-                   
-                    <ReactPaginate
-                      className="pagination"
-                      breakLabel="..."
-                      nextLabel="next >"
-                      onPageChange={handlePageClick}
-                      pageRangeDisplayed={5}
-                      pageCount={pageCount}
-                      previousLabel="< previous"
-                      renderOnZeroPageCount={null}
-                      activeClassName="active"
-                    />
-                  
-                  </Row>
-                
-                
+                  <ReactPaginate
+                    className="pagination"
+                    breakLabel="..."
+                    nextLabel="next >"
+                    onPageChange={handlePageClick}
+                    pageRangeDisplayed={5}
+                    pageCount={pageCount}
+                    previousLabel="< previous"
+                    renderOnZeroPageCount={null}
+                    activeClassName="active"
+                  />
+                </Row>
               </div>
             </>
           ) : (
