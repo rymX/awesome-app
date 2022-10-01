@@ -3,12 +3,12 @@ import axios from "axios";
 import {
   Breadcrumb,
   Layout,
-  Form,
   Card,
   Row,
   Input,
   Select,
   notification,
+  Col
 } from "antd";
 import ReactPaginate from "react-paginate";
 import { MinusCircleOutlined } from "@ant-design/icons";
@@ -18,30 +18,29 @@ import "./App.css";
 const { Header, Content, Footer } = Layout;
 const { Search } = Input;
 const { Option } = Select;
-
 const App = () => {
+  
   const searchElm = useRef("");
   const wrapperRef = useRef(null);
   const isInitialMount = useRef(true);
-  const formRef = useRef();
 
   const [searchArray, setSearchArray] = useState({});
   const [apis, setApis] = useState({});
-
-  const [currentItems, setCurrentItems] = useState(null);
-  const [pageCount, setPageCount] = useState(0);
-
-  const [selectedCategory, setSelectedCategory] = useState();
   const [allCategories, setAllCategories] = useState([]);
   const [searchByCategory, setSearchByCategory] = useState([]);
 
+// react-paginate setup
+  const [currentItems, setCurrentItems] = useState(null);
+  const [pageCount, setPageCount] = useState(0);
   const [itemOffset, setItemOffset] = useState(0);
 
-  function Items({ currentItems }) {
+
+  function Cards({ currentItems }) {
     return (
       <>
         {currentItems &&
           currentItems.map((item, key) => (
+            <a href={item.Link} >
             <div>
               <Card
                 size="small"
@@ -54,27 +53,16 @@ const App = () => {
                   margin: 15,
                 }}
               >
-                <h2
-                  style={{
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                  }}
-                >
+                <h2 className="card-text">
                   {item.API}
                 </h2>
                 <p>Category : {item.Category}</p>
-                <p
-                  style={{
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                  }}
-                >
+                <p className="card-text" >
                   {item.Description}
                 </p>
               </Card>
             </div>
+            </a>
           ))}
       </>
     );
@@ -82,6 +70,7 @@ const App = () => {
 
   const handlePageClick = (event) => {
     if (searchArray.length) {
+
       const newOffset = (event.selected * 20) % searchArray.length;
       setItemOffset(newOffset);
 
@@ -89,7 +78,8 @@ const App = () => {
       setCurrentItems(searchArray.slice(newOffset, endOffset));
 
       setPageCount(Math.ceil(searchArray.length / 20));
-    } else if (searchByCategory.length) {
+    } else  {
+
       const newOffset = (event.selected * 20) % searchByCategory.length;
       setItemOffset(newOffset);
 
@@ -97,16 +87,7 @@ const App = () => {
       setCurrentItems(searchByCategory.slice(newOffset, endOffset));
 
       setPageCount(Math.ceil(searchByCategory.length / 20));
-    } else {
-      const newOffset = (event.selected * 20) % apis.length;
-      setItemOffset(newOffset);
-
-      const endOffset = newOffset + 20;
-      setCurrentItems(apis.slice(newOffset, endOffset));
-
-      setPageCount(Math.ceil(apis.length / 20));
     }
-
     wrapperRef.current.scrollIntoView();
   };
 
@@ -116,10 +97,11 @@ const App = () => {
       const newApiList = searchByCategory.filter((api) => {
         return api.API.toLowerCase().includes(searchTerm.toLowerCase());
       });
+
       if (newApiList.length == 0) {
         notification.open({
           message: "No Search Results ",
-          description: `Sorry, but nothing matched your search terms " ${searchTerm} " please try again with some different keywords`,
+          description: `Sorry, but nothing matched your search terms " ${searchTerm} " `,
           icon: (
             <MinusCircleOutlined
               style={{
@@ -129,120 +111,101 @@ const App = () => {
           ),
         });
       }
-      setSearchByCategory(newApiList);
-      // if(searchArray.length) {
-      //   const  newApiList = searchArray.filter((api)=>{
-      //     return  (api.API).toLowerCase().includes(searchTerm.toLowerCase());
-      //   })
-      //   // console.log(newApiList);
-      //  setSearchArray(newApiList)
-      // }
-      // else {
-      //   const  newApiList = apis.filter((api)=>{
-      //     return  (api.API).toLowerCase().includes(searchTerm.toLowerCase());
-      //   })
-      //   // console.log(newApiList);
-      //  setSearchArray(newApiList)
-      // }
+      setSearchArray(newApiList);
     } else if (searchTerm == "") {
       setSearchArray([]);
     }
+    setItemOffset(0)
+
   };
 
   const handleSelectCategory = (value) => {
-    console.log( formRef.current.input);
-    // formRef.current.reset();
-   //  searchElm.current.input.value = "";
-    //  searchElm.current.input._valueTracker.setValue("")
-    console.log();
-    //
+
+    searchElm.current.select();
+    setSearchArray([]);
+
     if (value == "allCategories") {
-      //   setSearchArray(apis);
       setSearchByCategory(apis);
     } else {
       const newApiList = apis.filter((api) => {
         return api.Category.toLowerCase() === value.toLowerCase();
       });
-
-      //  setSearchArray(newApiList);
       setSearchByCategory(newApiList);
     }
+    setItemOffset(0)
+
   };
 
   useEffect(() => {
+    
     const fetchApis = async () => {
       const data = await axios("https://api.publicapis.org/entries");
       setApis(data.data.entries);
       setSearchByCategory(data.data.entries);
 
-      const itemOffset = 0;
       const endOffset = itemOffset + 20;
-
-      //   setCurrentItems(data.data.entries.slice(itemOffset, endOffset));
-
-      // setPageCount(Math.ceil(data.data.entries.length / 20));
-
-      if (searchByCategory.length) {
-        setCurrentItems(searchByCategory.slice(itemOffset, endOffset));
-
-        setPageCount(Math.ceil(searchByCategory.length / 20));
-      } else {
+      
         setCurrentItems(data.data.entries.slice(itemOffset, endOffset));
 
         setPageCount(Math.ceil(data.data.entries.length / 20));
-      }
+      
     };
 
     const fetchCategory = async () => {
       const categories = await axios("https://api.publicapis.org/categories");
       setAllCategories(categories.data.categories);
-      // console.log(categories.data.categories);
-      // console.log(typeof categories.data.categories);
     };
 
     fetchApis();
     fetchCategory();
   }, []);
-  // useEffect(() => {
-  //   if (searchArray ) console.log("test ")
-  //   setApis(searchArray)
-  //   console.log("new api list " + searchArray)
-  //  }, [searchTerm])
 
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
-    } else if (searchArray.length) {
+    } else
+    {
+     if (searchArray.length) {
       const itemOffset = 0;
       const endOffset = itemOffset + 20;
       setCurrentItems(searchArray.slice(itemOffset, endOffset));
 
       setPageCount(Math.ceil(searchArray.length / 20));
+      console.log(pageCount);
     } else if (searchByCategory.length) {
       const itemOffset = 0;
       const endOffset = itemOffset + 20;
       setCurrentItems(searchByCategory.slice(itemOffset, endOffset));
 
       setPageCount(Math.ceil(searchByCategory.length / 20));
+      console.log(pageCount);
+
     }
-  }, [searchByCategory, searchArray]);
+  }
+  }, [searchByCategory, searchArray ]);
 
   return (
     <div className="App" ref={wrapperRef}>
-      <Layout>
+      <Layout className="layout">
         <Header
-          style={{
-            position: "fixed",
-            zIndex: 1,
-            width: "100%",
-            theme: "dark",
-            mode: "horizontal",
-          }}
+        style={{
+        position: 'fixed',
+        zIndex: 1,
+        width: '100%',
+      }}
         >
-    
-    <form ref={formRef} 
-    onSubmit={handleSelectCategory}>
-              <Search
+   <Row
+
+      gutter={{
+        xs: 8,
+        sm: 16,
+        md: 24,
+        lg: 32,
+      }}
+    >
+      <Col className="gutter-row" span={4}>
+      
+      <Search
               ref={searchElm}
               placeholder="input search text"
               onChange={onhandleSearch}
@@ -253,7 +216,9 @@ const App = () => {
                 marginLeft: 40,
               }}
             />
-              <Select
+      </Col>
+      <Col className="gutter-row" span={4}>
+      <Select
               defaultValue="All Category"
               placeholder="input Category"
               onChange={handleSelectCategory}
@@ -270,8 +235,11 @@ const App = () => {
                 allCategories.map((item, key) => (
                   <Option value={item}>{item}</Option>
                 ))}
-            </Select>
-            </form>
+            </Select></Col>
+
+            
+            
+            </Row>
         </Header>
         <Content
           className="site-layout "
@@ -280,23 +248,23 @@ const App = () => {
             marginTop: 64,
           }}
         >
-          {/* <Breadcrumb
+          <Breadcrumb
             style={{
-              margin: "16px 0",
+              margin: "5px 0",
             }}
           >
-            {searchByCategory.length ? (
+            {searchArray.length ? (
               <Breadcrumb.Item>
-                total : {searchArray.length} apis{" "}
+              total : {searchArray.length} apis , {Math.ceil(searchArray.length / 20)} page  
               </Breadcrumb.Item>
             ) : (
-              <Breadcrumb.Item> total : {apis.length} apis </Breadcrumb.Item>
+              <Breadcrumb.Item> total : {searchByCategory.length} apis ,  {Math.ceil(searchByCategory.length / 20)} page </Breadcrumb.Item>
             )}
-          </Breadcrumb> */}
-          {apis.length ? (
+          </Breadcrumb>
+          {searchByCategory.length ? (
             <>
               <div
-                className="site-layout-background site-card-border-less-wrapper"
+                className="site-layout-background"
                 style={{
                   padding: 24,
                   minHeight: 380,
@@ -313,7 +281,7 @@ const App = () => {
                     xxl: 3,
                   }}
                 >
-                  <Items currentItems={currentItems} />
+                  <Cards currentItems={currentItems} />
                 </Row>
                 <Row
                   grid={{
