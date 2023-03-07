@@ -22,11 +22,10 @@ Here are a list of major frameworks/libraries used to bootstrap my project
 
 
 
-* <a href="https://nodejs.org/en/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/react-colored.svg" width="36" height="36" alt="reactjs" /></a>
-* <a href="https://expressjs.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/antd-colored.svg" width="36" height="36" alt="antd" /></a>
-* <a href="https://www.mongodb.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/axios-colored.svg" width="36" height="36" alt="axios" /></a>
-* <a href="https://www.mongodb.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/react-dom-colored.svg" width="36" height="36" alt="react-dom" /></a>
-* <a href="https://www.mongodb.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/react-paginate-colored.svg" width="36" height="36" alt="react-paginate" /></a>
+* <a href="https://reactjs.org/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/react-colored.svg" width="36" height="36" alt="reactjs" /></a>
+* <a href="https://ant.design/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/antd-colored.svg" width="36" height="36" alt="antd" /></a>
+* <a href="https://www.npmjs.com/package/axios" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/axios-colored.svg" width="36" height="36" alt="axios" /></a>
+* <a href="https://www.npmjs.com/package/react-paginate" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/skills/react-paginate-colored.svg" width="36" height="36" alt="react-paginate" /></a>
 
 
 
